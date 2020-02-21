@@ -1,7 +1,11 @@
 package by.chemerisuk.cordova.firebase;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
+import android.util.Base64;
 import android.content.Context;
 import android.util.Log;
 
@@ -12,10 +16,13 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigValue;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class FirebaseConfigPlugin extends ReflectiveCordovaPlugin {
     private static final String TAG = "FirebaseConfigPlugin";
@@ -109,7 +116,63 @@ public class FirebaseConfigPlugin extends ReflectiveCordovaPlugin {
         callbackContext.success(getValue(key).asString());
     }
 
+    @CordovaMethod
+    protected void setConfigSettings(final JSONObject config, final CallbackContext callbackContext) {
+        long fetchTimeoutInSeconds = config.optLong("fetchTimeoutInSeconds", -1L);
+        long minimumFetchIntervalInSeconds = config.optLong("minimumFetchIntervalInSeconds", -1L);
+
+        FirebaseRemoteConfigSettings.Builder settings = new FirebaseRemoteConfigSettings.Builder();
+        if(fetchTimeoutInSeconds > 0) {
+            settings = settings.setFetchTimeoutInSeconds(fetchTimeoutInSeconds);
+        }
+        if(minimumFetchIntervalInSeconds > 0) {
+            settings = settings.setMinimumFetchIntervalInSeconds(minimumFetchIntervalInSeconds);
+        }
+
+        this.firebaseRemoteConfig.setConfigSettings(settings.build());
+        callbackContext.success();
+    }
+
+    @CordovaMethod
+    protected void setDefaults(final JSONObject defaults, final CallbackContext callbackContext) {
+        try {
+            this.firebaseRemoteConfig.setDefaultsAsync(defaultsToMap(defaults));
+            callbackContext.success();
+        } catch(Exception e){
+            callbackContext.error(e.getMessage());
+        }
+    }
+
     private FirebaseRemoteConfigValue getValue(String key) {
         return this.firebaseRemoteConfig.getValue(key);
+    }
+
+    private static Map<String, Object> defaultsToMap(JSONObject object) throws JSONException {
+        final Map<String, Object> map = new HashMap<String, Object>();
+
+        for (Iterator<String> keys = object.keys(); keys.hasNext(); ) {
+            String key = keys.next();
+            Object value = object.get(key);
+
+            if (value instanceof Integer) {
+                //setDefaults() should take Longs
+                value = new Long((Integer) value);
+            } else if (value instanceof JSONArray) {
+                JSONArray array = (JSONArray) value;
+                if (array.length() == 1 && array.get(0) instanceof String) {
+                    //parse byte[] as Base64 String
+                    value = Base64.decode(array.getString(0), Base64.DEFAULT);
+                } else {
+                    //parse byte[] as numeric array
+                    byte[] bytes = new byte[array.length()];
+                    for (int i = 0; i < array.length(); i++)
+                        bytes[i] = (byte) array.getInt(i);
+                    value = bytes;
+                }
+            }
+
+            map.put(key, value);
+        }
+        return map;
     }
 }

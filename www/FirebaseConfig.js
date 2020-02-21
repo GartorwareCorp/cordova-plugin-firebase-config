@@ -34,5 +34,15 @@ module.exports = {
     },
     getBytes: function(key) {
         return promiseParameter("Bytes", key);
+    },
+    setConfigSettings: function (settings) {
+        return new Promise(function(resolve, reject) {
+            exec(resolve, reject, PLUGIN_NAME, "setConfigSettings", [settings]);
+        });
+    },
+    setDefaults: function (defaults) {
+        return new Promise(function(resolve, reject) {
+            exec(resolve, reject, PLUGIN_NAME, "setDefaults", [defaults]);
+        });
     }
 };
