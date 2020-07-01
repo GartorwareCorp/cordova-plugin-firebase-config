@@ -1,7 +1,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 xmlns:android="http://schemas.android.com/apk/res/android"
            id="cordova-plugin-firebase-config"
-      version="4.2.0">
+      version="4.3.0">
 
     <name>cordova-plugin-firebase-config</name>
     <description>Cordova plugin for Firebase Remote Config</description>
@@ -20,7 +20,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         <engine name="cordova-ios" version=">=5.0.0"/>
     </engines>
 
-    <dependency id="cordova-plugin-firebase-analytics" version="~4.2.0"/>
+    <dependency id="cordova-plugin-firebase-analytics" version="~4.3.0"/>
 
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
@@ -37,7 +37,7 @@ xmlns:android="http://schemas.android.com/apk/res/android"
                 <source url="https://cdn.cocoapods.org/"/>
             </config>
             <pods>
-                <pod name="Firebase/RemoteConfig" spec="~> 6.21.0" />
+                <pod name="Firebase/RemoteConfig" spec="~> 6.23.0" />
             </pods>
         </podspec>
     </platform>
